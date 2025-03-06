@@ -1,0 +1,17 @@
+{
+  "name": "mern-tasks",
+  "version": "1.0.0",
+  "main": "start.js",
+  "workspaces": [
+    "react",
+    "node"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "start": "node start.js"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "license": "ISC"
+}
