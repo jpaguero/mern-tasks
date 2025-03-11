@@ -1,16 +1,28 @@
-import dotenv from "dotenv";
-import express, { Request, Response } from "express";
-dotenv.config();
+import express, { Application } from "express";
+import cors from "cors";
+import { PORT } from "./config/env";
+import connectDB from "./config/db";
+import router from "./routes";
+import errorHandler from "./middlewares/errorHandler";
 
-const app = express();
+// MongoDB conection
+connectDB();
 
-const PORT = process.env.PORT;
-if (!PORT) throw new Error("PORT is not defined");
+const app: Application = express();
 
-app.get("/", (request: Request, response: Response) => {
-  response.status(200).send("Hello World");
+// Middleware
+app.use(express.json());
+app.use(cors());
+
+// Routes
+app.use("/", router);
+
+// Middleware to handle errors
+app.use(errorHandler);
+
+// Start Server
+const server = app.listen(PORT, () => {
+  console.log(`Server is running at http://localhost:${PORT}`);
 });
 
-app.listen(PORT, () => {
-  console.log("Server running at PORT: ", PORT);
-});
+export { app, server };
