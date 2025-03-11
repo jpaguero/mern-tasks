@@ -1,10 +1,21 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import User, { UserRole } from "../models/User";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import ApiError from "../utils/apiError";
 
-const JWT_SECRET = process.env.JWT_SECRET || "secret";
+const JWT_SECRET = process.env.JWT_SECRET!;
+const REFRESH_SECRET = process.env.REFRESH_SECRET!;
+
+// Genera un Access Token de corta duración
+const generateAccessToken = (user: any) => {
+    return jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "15m" });
+  };
+  
+// Genera un Refresh Token de larga duración
+const generateRefreshToken = (user: any) => {
+return jwt.sign({ id: user._id }, REFRESH_SECRET, { expiresIn: "7d" });
+};
 
 // Register
 export const register = async (req: Request, res: Response, next: any): Promise<void> => {
@@ -62,15 +73,63 @@ export const login = async (req: Request, res: Response, next: any): Promise<voi
         throw new ApiError("Invalid credentials", 401);
     }
 
-    // Create JWT token with id and role
-    const token = jwt.sign(
-        { id: user._id, role: user.role },
-        process.env.JWT_SECRET!,
-        { expiresIn: "1h" }
-      );
+    // Generar tokens
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
 
-    res.json({ token });
+    // Guardar el Refresh Token en la BD
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    res.json({ accessToken, refreshToken });
   } catch (error) {
     next(error);
   }
 };
+
+export const refreshToken = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { refreshToken } = req.body;
+      if (!refreshToken) {
+        throw new ApiError("Refresh Token is required", 400);
+      }
+  
+      const user = await User.findOne({ refreshToken });
+      if (!user) {
+        throw new ApiError("Invalid Refresh Token", 403);
+      }
+  
+      jwt.verify(refreshToken, REFRESH_SECRET, (err: any, decoded: any) => {
+        if (err || user.id.toString() !== decoded.id) {
+          throw new ApiError("Invalid Refresh Token", 403);
+        }
+  
+        const newAccessToken = generateAccessToken(user);
+        res.json({ accessToken: newAccessToken });
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  
+  export const logout = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { refreshToken } = req.body;
+      if (!refreshToken) {
+        throw new ApiError("Refresh Token is required", 400);
+      }
+  
+      const user = await User.findOne({ refreshToken });
+      if (!user) {
+        throw new ApiError("Invalid Refresh Token", 403);
+      }
+  
+      user.refreshToken = null;
+      await user.save();
+  
+      res.json({ message: "Logout successful" });
+    } catch (error) {
+      next(error);
+    }
+  };
+  
