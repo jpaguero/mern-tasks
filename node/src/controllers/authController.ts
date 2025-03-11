@@ -7,12 +7,12 @@ import ApiError from "../utils/apiError";
 const JWT_SECRET = process.env.JWT_SECRET!;
 const REFRESH_SECRET = process.env.REFRESH_SECRET!;
 
-// Genera un Access Token de corta duración
+// Generate access token
 const generateAccessToken = (user: any) => {
     return jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "15m" });
   };
   
-// Genera un Refresh Token de larga duración
+// Generate Refresh Token
 const generateRefreshToken = (user: any) => {
 return jwt.sign({ id: user._id }, REFRESH_SECRET, { expiresIn: "7d" });
 };
@@ -22,27 +22,22 @@ export const register = async (req: Request, res: Response, next: any): Promise<
   try {
     const { nickname, password, role } = req.body;
 
-    // validate input data
     if (!nickname || !password) {
       throw new ApiError("Nickname and password are required", 400);
     }
 
-    // Validate if user exist
     const existingUser = await User.findOne({ nickname });
     if (existingUser) {
         throw new ApiError("Nickname already taken", 400);
     }
 
-    //Validate Role
     const validRoles: UserRole[] = ["user", "admin"];
     if (role && !validRoles.includes(role)) {
       throw new ApiError("Invalid role", 400);
     }
 
-    // Encript pasword
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
     const newUser = new User({ nickname, password: hashedPassword, role: role || "user" });
     await newUser.save();
 
@@ -73,11 +68,11 @@ export const login = async (req: Request, res: Response, next: any): Promise<voi
         throw new ApiError("Invalid credentials", 401);
     }
 
-    // Generar tokens
+    // Generate tokens
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
-    // Guardar el Refresh Token en la BD
+    // Save Refresh Token in BD
     user.refreshToken = refreshToken;
     await user.save();
 
