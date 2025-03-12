@@ -1,34 +1,39 @@
 import { useState } from "react";
 import axios from "axios";
-import { useAuthStore } from "../store/authStore";
 import { useNavigate, Link } from "react-router-dom";
+import "./auth.scss";
 
-const LoginPage = () => {
+const RegisterPage = () => {
   const [nickname, setNickname] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
-  const { login } = useAuthStore();
   const navigate = useNavigate();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
     try {
-      const { data } = await axios.post("http://localhost:5174/auth/login", {
+      await axios.post("http://localhost:5174/auth/register", {
         nickname,
         password,
       });
-      login(data.accessToken);
-      navigate("/tasks");
+      navigate("/login");
     } catch (err) {
-      setError("Invalid credentials");
+      setError("Registration failed. Try again.");
     }
   };
 
   return (
     <div className="auth-container">
-      <h2>Login</h2>
+      <h2>Register</h2>
       {error && <p className="auth-error">{error}</p>}
-      <form onSubmit={handleLogin} className="auth-form">
+      <form onSubmit={handleRegister} className="auth-form">
         <input
           type="text"
           placeholder="Nickname"
@@ -43,13 +48,20 @@ const LoginPage = () => {
           onChange={(e) => setPassword(e.target.value)}
           className="auth-input"
         />
-        <button type="submit" className="auth-btn">Login</button>
+        <input
+          type="password"
+          placeholder="Confirm Password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          className="auth-input"
+        />
+        <button type="submit" className="auth-btn">Register</button>
       </form>
       <p className="auth-link">
-        Don't have an account? <Link to="/register">Register</Link>
+        Already have an account? <Link to="/login">Login</Link>
       </p>
     </div>
   );
 };
 
-export default LoginPage;
+export default RegisterPage;
