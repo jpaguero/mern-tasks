@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import authRoutes from "./authRoutes";
 import taskRoutes from "./taskRoutes";
+import iaRoutes from "./iaRoutes";
 
 const router = Router();
 
@@ -12,5 +13,6 @@ router.get("/", (req: Request, res: Response) => {
 
 router.use("/auth", authRoutes);
 router.use("/tasks", taskRoutes);
+router.use("/ia", iaRoutes);
 
 export default router;

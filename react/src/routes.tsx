@@ -3,6 +3,7 @@ import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import TasksPage from "./pages/tasks/TasksPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ImageToText from "./pages/ia-models/ImageToText";
 
 const AppRoutes = () => {
   return (
@@ -19,6 +20,7 @@ const AppRoutes = () => {
           }
         />
         <Route path="*" element={<Navigate to="/login" />} />
+        <Route path="/image-to-text" element={<ImageToText />} />
       </Routes>
     </Router>
   );

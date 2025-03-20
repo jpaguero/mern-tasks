@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuthStore } from "../../store/authStore";
 import "./tasks.scss"
+import { Link } from "react-router-dom";
 
 interface Task {
   _id: string;
@@ -118,7 +119,12 @@ const TasksPage = () => {
       </div>
 
       <button onClick={logout} className="logout-btn">Logout</button>
+
+      <Link to="/image-to-text">
+        <button className="upload-btn">Convert Image to Text</button>
+      </Link>
     </div>
+    
   );
 };
 
